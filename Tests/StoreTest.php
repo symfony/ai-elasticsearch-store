@@ -197,6 +197,24 @@ final class StoreTest extends TestCase
         $this->assertSame(1, $httpClient->getRequestsCount());
     }
 
+    public function testStoreNormalizesTrailingSlashOnEndpoint()
+    {
+        $requestedUrl = null;
+        $httpClient = new MockHttpClient(static function (string $method, string $url) use (&$requestedUrl): JsonMockResponse {
+            $requestedUrl = $url;
+
+            return new JsonMockResponse('', [
+                'http_code' => 200,
+            ]);
+        });
+
+        $store = new Store($httpClient, 'http://127.0.0.1:9200/', 'foo');
+        $store->setup();
+
+        $this->assertSame('http://127.0.0.1:9200/foo', $requestedUrl);
+        $this->assertSame(1, $httpClient->getRequestsCount());
+    }
+
     public function testStoreSupportsVectorQuery()
     {
         $store = new Store(new MockHttpClient(), 'http://localhost:9200', 'test-index');
